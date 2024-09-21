@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Management - Neplink</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    form { margin-bottom: 20px; }
+    input { padding: 8px; margin-right: 10px; }
+    button { padding: 8px 12px; }
+    ul { list-style-type: none; padding: 0; }
+    li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>User Management</h1>
+
+  <h2>Send Friend Request</h2>
+  <form id="sendFriendRequestForm">
+    <input type="text" id="sendFriendId" placeholder="Recipient User ID" required />
+    <button type="submit">Send Request</button>
+  </form>
+
+  <h2>Accept Friend Request</h2>
+  <form id="acceptFriendRequestForm">
+    <input type="text" id="acceptFriendId" placeholder="Sender User ID" required />
+    <button type="submit">Accept Request</button>
+  </form>
+
+  <h2>Decline Friend Request</h2>
+  <form id="declineFriendRequestForm">
+    <input type="text" id="declineFriendId" placeholder="Sender User ID" required />
+    <button type="submit">Decline Request</button>
+  </form>
+
+  <h2>Cancel Sent Friend Request</h2>
+  <form id="cancelFriendRequestForm">
+    <input type="text" id="cancelFriendId" placeholder="Recipient User ID" required />
+    <button type="submit">Cancel Request</button>
+  </form>
+
+  <h2>Your Friends</h2>
+  <ul id="friendsList"></ul>
+
+  <h2>Your Blocked Users</h2>
+  <ul id="blockedList"></ul>
+
+  <h2>Incoming Friend Requests</h2>
+  <ul id="incomingRequestsList"></ul>
+
+  <h2>Outgoing Friend Requests</h2>
+  <ul id="outgoingRequestsList"></ul>
+
+  <script>
+    // Handle Send Friend Request
+    document.getElementById('sendFriendRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const recipientId = document.getElementById('sendFriendId').value.trim();
+      if (!recipientId) return alert('Recipient ID is required.');
+      
+      try {
+        const response = await fetch('/user/send-friend-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipientId }),
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadOutgoingFriendRequests();
+      } catch (error) {
+        console.error(error);
+        alert('Error sending friend request.');
+      }
+    });
+
+    // Handle Accept Friend Request
+    document.getElementById('acceptFriendRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const senderId = document.getElementById('acceptFriendId').value.trim();
+      if (!senderId) return alert('Sender ID is required.');
+      
+      try {
+        const response = await fetch('/user/accept-friend-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senderId }),
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadIncomingFriendRequests();
+        loadFriends();
+      } catch (error) {
+        console.error(error);
+        alert('Error accepting friend request.');
+      }
+    });
+
+    // Handle Decline Friend Request
+    document.getElementById('declineFriendRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const senderId = document.getElementById('declineFriendId').value.trim();
+      if (!senderId) return alert('Sender ID is required.');
+      
+      try {
+        const response = await fetch('/user/decline-friend-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senderId }),
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadIncomingFriendRequests();
+      } catch (error) {
+        console.error(error);
+        alert('Error declining friend request.');
+      }
+    });
+
+    // Handle Cancel Friend Request
+    document.getElementById('cancelFriendRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const recipientId = document.getElementById('cancelFriendId').value.trim();
+      if (!recipientId) return alert('Recipient ID is required.');
+      
+      try {
+        const response = await fetch('/user/cancel-friend-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipientId }),
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadOutgoingFriendRequests();
+      } catch (error) {
+        console.error(error);
+        alert('Error canceling friend request.');
+      }
+    });
+
+    // Load Friends
+    async function loadFriends() {
+      try {
+        const response = await fetch('/user/friends');
+        const data = await response.json();
+        const friendsList = document.getElementById('friendsList');
+        friendsList.innerHTML = '';
+        data.friends.forEach(friend => {
+          const li = document.createElement('li');
+          li.textContent = `${friend.username} (${friend.email})`;
+          friendsList.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error loading friends.');
+      }
+    }
+
+    // Load Blocked Users
+    async function loadBlockedUsers() {
+      try {
+        const response = await fetch('/user/blocked-users');
+        const data = await response.json();
+        const blockedList = document.getElementById('blockedList');
+        blockedList.innerHTML = '';
+        data.blockedUsers.forEach(user => {
+          const li = document.createElement('li');
+          li.textContent = `${user.username} (${user.email})`;
+          blockedList.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error loading blocked users.');
+      }
+    }
+
+    // Load Incoming Friend Requests
+    async function loadIncomingFriendRequests() {
+      try {
+        const response = await fetch('/user/friend-requests/incoming');
+        const data = await response.json();
+        const incomingList = document.getElementById('incomingRequestsList');
+        incomingList.innerHTML = '';
+        data.incomingRequests.forEach(user => {
+          const li = document.createElement('li');
+          li.textContent = `${user.username} (${user.email})`;
+          incomingList.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error loading incoming friend requests.');
+      }
+    }
+
+    // Load Outgoing Friend Requests
+    async function loadOutgoingFriendRequests() {
+      try {
+        const response = await fetch('/user/friend-requests/outgoing');
+        const data = await response.json();
+        const outgoingList = document.getElementById('outgoingRequestsList');
+        outgoingList.innerHTML = '';
+        data.outgoingRequests.forEach(user => {
+          const li = document.createElement('li');
+          li.textContent = `${user.username} (${user.email})`;
+          outgoingList.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error loading outgoing friend requests.');
+      }
+    }
+
+    // Initial Load
+    window.onload = () => {
+      loadFriends();
+      loadBlockedUsers();
+      loadIncomingFriendRequests();
+      loadOutgoingFriendRequests();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Posts - Neplink</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    form { margin-bottom: 20px; }
+    input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+    button { padding: 10px 15px; }
+    .post { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; }
+    .media { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <h1>Create a New Post</h1>
+  <form id="createPostForm" enctype="multipart/form-data">
+    <textarea id="status" name="status" placeholder="What's on your mind?" rows="3"></textarea>
+    <textarea id="caption" name="caption" placeholder="Add a caption..." rows="2"></textarea>
+    <input type="file" id="media" name="media" accept="image/*,video/*" />
+    <button type="submit">Post</button>
+  </form>
+
+  <h1>All Posts</h1>
+  <div id="postsContainer"></div>
+
+  <script>
+    // Handle Create Post
+    document.getElementById('createPostForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      const status = document.getElementById('status').value.trim();
+      const caption = document.getElementById('caption').value.trim();
+      const media = document.getElementById('media').files[0];
+
+      if (status) formData.append('status', status);
+      if (caption) formData.append('caption', caption);
+      if (media) formData.append('media', media);
+
+      try {
+        const response = await fetch('/posts', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+        if (data.postId) {
+          alert('Post created successfully.');
+          loadPosts();
+          document.getElementById('createPostForm').reset();
+        } else {
+          alert(data.message || 'Error creating post.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error creating post.');
+      }
+    });
+
+    // Load All Posts
+    async function loadPosts() {
+      try {
+        const response = await fetch('/posts');
+        const data = await response.json();
+        const postsContainer = document.getElementById('postsContainer');
+        postsContainer.innerHTML = '';
+
+        data.posts.forEach(post => {
+          const postDiv = document.createElement('div');
+          postDiv.className = 'post';
+
+          postDiv.innerHTML = `
+            <p><strong>User ID:</strong> ${post.authorId}</p>
+            <p><strong>Status:</strong> ${post.status}</p>
+            <p><strong>Caption:</strong> ${post.caption}</p>
+            ${post.mediaUrl ? `<img src="${post.mediaUrl}" alt="Media" class="media" />` : ''}
+            <p><strong>Likes:</strong> ${post.likes ? Object.keys(post.likes).length : 0}</p>
+            <button onclick="likePost('${post.id}')">Like</button>
+            <button onclick="unlikePost('${post.id}')">Unlike</button>
+            <button onclick="deletePost('${post.id}')">Delete</button>
+            <hr />
+          `;
+
+          postsContainer.appendChild(postDiv);
+        });
+      } catch (error) {
+        console.error(error);
+        alert('Error loading posts.');
+      }
+    }
+
+    // Like a Post
+    async function likePost(postId) {
+      try {
+        const response = await fetch(`/posts/${postId}/like`, {
+          method: 'POST',
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadPosts();
+      } catch (error) {
+        console.error(error);
+        alert('Error liking post.');
+      }
+    }
+
+    // Unlike a Post
+    async function unlikePost(postId) {
+      try {
+        const response = await fetch(`/posts/${postId}/unlike`, {
+          method: 'POST',
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadPosts();
+      } catch (error) {
+        console.error(error);
+        alert('Error unliking post.');
+      }
+    }
+
+    // Delete a Post
+    async function deletePost(postId) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+
+      try {
+        const response = await fetch(`/posts/${postId}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
+        alert(data.message);
+        loadPosts();
+      } catch (error) {
+        console.error(error);
+        alert('Error deleting post.');
+      }
+    }
+
+    // Initial Load
+    window.onload = loadPosts;
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+### OAuth Google Login
+# You will first need to login with OAuth (e.g., Google), so this request simulates the OAuth URL and callback.
+
+# 1. Google OAuth URL (For redirect)
+GET http://localhost:3000/auth/google
+
+# 2. Google OAuth Callback URL (this will happen automatically after OAuth)
+GET http://localhost:3000/auth/google/callback
+
+###
+
+### Add Friend
+# Add a friend using the POST /add-friend route
+POST http://localhost:3000/users/add-friend
+Content-Type: application/json
+
+{
+  "userId": "111692392788860267871",   # Replace with actual userId
+  "friendId": "115587643267080513112"  # Replace with friend's userId
+}
+
+###
+
+### Remove Friend
+# Remove a friend using the POST /remove-friend route
+POST http://localhost:3000/users/remove-friend
+Content-Type: application/json
+
+{
+  "userId": "USER_ID_1",   # Replace with actual userId
+  "friendId": "USER_ID_2"  # Replace with friend's userId
+}
+
+###
+
+### Block User
+# Block a user using the POST /block-user route
+POST http://localhost:3000/users/block-user
+Content-Type: application/json
+
+{
+  "userId": "USER_ID_1",   # Replace with actual userId
+  "blockId": "USER_ID_3"   # Replace with the userId to be blocked
+}
+
+###
+
+### Unblock User
+# Unblock a user using the POST /unblock-user route
+POST http://localhost:3000/users/unblock-user
+Content-Type: application/json
+
+{
+  "userId": "USER_ID_1",   # Replace with actual userId
+  "blockId": "USER_ID_3"   # Replace with the userId to be unblocked
+}
+
+###
+
+### Get User Profile
+# Get the profile of a specific user using GET /profile/:userId
+GET http://localhost:3000/users/profile/USER_ID_1
